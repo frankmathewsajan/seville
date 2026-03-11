@@ -27,15 +27,11 @@ export function TerminalApp() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when new commands are entered
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history]);
 
-  // Keep input focused when clicking anywhere in the terminal
-  const handleTerminalClick = () => {
-    inputRef.current?.focus();
-  };
+  const handleTerminalClick = () => inputRef.current?.focus();
 
   const processCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
@@ -59,11 +55,7 @@ export function TerminalApp() {
       case 'ls':
         output = (
           <div className="flex gap-4 text-[#ff5f57]">
-            <span>projects/</span>
-            <span>certs/</span>
-            <span>cases/</span>
-            <span>about.txt</span>
-            <span>resume.pdf</span>
+            <span>projects/</span> <span>certs/</span> <span>cases/</span> <span>about.txt</span> <span>resume.pdf</span>
           </div>
         );
         break;
@@ -71,13 +63,9 @@ export function TerminalApp() {
         openApp('projects', 'Archive // Projects');
         output = <div className="text-white/50">Opening Projects...</div>;
         break;
-      case 'open about':
-        openApp('about', 'User // About');
-        output = <div className="text-white/50">Opening About Me...</div>;
-        break;
       case 'reboot':
         refreshUI();
-        return; // Exits early to avoid updating unmounted state
+        return;
       case 'clear':
         setHistory([]);
         return;
@@ -87,7 +75,6 @@ export function TerminalApp() {
       default:
         output = <div className="text-[#ff5f57]">command not found: {trimmedCmd}</div>;
     }
-
     setHistory((prev) => [...prev, { command: cmd, output }]);
   };
 
@@ -99,9 +86,8 @@ export function TerminalApp() {
   };
 
   return (
-    // The bg-black/70 here completely solves the visibility issue for the Terminal
     <div 
-      className="h-full w-full p-6 font-mono text-sm sm:text-base overflow-y-auto custom-scrollbar"
+      className="h-full w-full bg-black/20 p-6 font-mono text-sm sm:text-base overflow-y-auto custom-scrollbar"
       onClick={handleTerminalClick}
     >
       <div className="flex flex-col space-y-4">
@@ -117,7 +103,6 @@ export function TerminalApp() {
           </div>
         ))}
         
-        {/* Active Input Line */}
         <div className="flex items-center gap-2 text-white/90">
           <span className="text-[#28c840]">guest@sys26</span>
           <span className="text-white/50">~</span>

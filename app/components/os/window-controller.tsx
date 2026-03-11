@@ -1,8 +1,6 @@
 'use client';
 
-import { useState } from 'react';
 import { motion, useMotionValue } from 'motion/react';
-import { LiquidGlass } from '../liquid/liquid-glass'; 
 import { useOSStore } from '@/app/store/os-store';
 import { cn } from '@/app/utils/cn';
 
@@ -19,9 +17,6 @@ export function WindowController({ id, title, children, defaultPos = { x: 100, y
 
   const x = useMotionValue(defaultPos.x);
   const y = useMotionValue(defaultPos.y);
-  
-  // OS Optimization: Track dragging state to disable physics during motion
-  const [isDragging, setIsDragging] = useState(false);
 
   if (!windowData) return null;
 
@@ -29,85 +24,44 @@ export function WindowController({ id, title, children, defaultPos = { x: 100, y
     <motion.div
       drag
       dragMomentum={false}
-      onDragStart={() => {
-        focusApp(id);
-        setIsDragging(true); // Downgrade rendering
-      }}
-      onDragEnd={() => setIsDragging(false)} // Restore physics
+      onDragStart={() => focusApp(id)}
       onMouseDown={() => focusApp(id)}
-      style={{ 
-        x, 
-        y, 
-        zIndex: windowData.zIndex,
-        position: 'absolute',
-        // Force hardware acceleration on the GPU
-        willChange: 'transform'
-      }}
-      className={cn(
-        "active:cursor-grabbing cursor-grab rounded-[40px]",
-        // If dragging, apply a fast, cheap CSS blur. Otherwise, no background.
-        isDragging ? "bg-white/5 backdrop-blur-2xl shadow-xl" : ""
-      )}
+      style={{ x, y, zIndex: windowData.zIndex, position: 'absolute', willChange: 'transform' }}
+      className="active:cursor-grabbing cursor-grab"
     >
-      {/* We use a wrapper to toggle the LiquidGlass visibility. 
-        We hide it using opacity instead of unmounting it so the canvas 
-        doesn't have to recalculate the math from scratch on every drop.
-      */}
-      <div className={cn("transition-opacity duration-150", isDragging ? "opacity-0" : "opacity-100")}>
-        <LiquidGlass 
-          glassThickness={60}
-          bezelWidth={12}
-          refractiveIndex={1.2}
-          blur={0.3}
-          dpr={1} // CRITICAL: Cuts CPU math by 400%+
-          className={cn(
-            "w-[700px] h-[500px] rounded-[40px] p-0 border border-white/10 shadow-2xl overflow-hidden",
-            windowData.isFocused ? "border-white/30" : "border-white/5"
-          )}
-        >
-          {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
-            <div className="flex space-x-2">
-              <button 
-                onClick={(e) => { e.stopPropagation(); closeApp(id); }}
-                className="w-3 h-3 rounded-full bg-[#ff5f57] border border-black/10 hover:brightness-125 transition-all" 
-              />
-              <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-black/10" />
-              <div className="w-3 h-3 rounded-full bg-[#28c840] border border-black/10" />
-            </div>
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/30">
-              {title}
-            </span>
-            <div className="w-10" />
+      <div 
+        className={cn(
+          "w-[800px] h-[550px] rounded-[40px] flex flex-col overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.2)]",
+          // The Base Glass Filter (Matching your .liquid-glass-effect)
+          "backdrop-blur-[30px] backdrop-saturate-[180%]",
+          // The Tint (Matching your .liquid-glass-tint)
+          "bg-[#ffffff1a]" 
+        )}
+        style={{
+          // The Shine (Matching your .liquid-glass-shine exactly)
+          boxShadow: windowData.isFocused 
+            ? "inset 2px 2px 1px rgba(255, 255, 255, 0.5), inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5), 0 25px 50px -12px rgba(0,0,0,0.5)"
+            : "inset 1px 1px 1px rgba(255, 255, 255, 0.2), inset -1px -1px 1px rgba(255, 255, 255, 0.2), 0 15px 30px -10px rgba(0,0,0,0.3)"
+        }}
+      >
+        {/* Mac Header - Made more transparent to let the main glass shine through */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/5 relative z-10">
+          <div className="flex space-x-2">
+            <button onClick={(e) => { e.stopPropagation(); closeApp(id); }} className="w-3.5 h-3.5 rounded-full bg-[#ff5f57] border border-black/10 hover:brightness-125 transition-all" />
+            <div className="w-3.5 h-3.5 rounded-full bg-[#febc2e] border border-black/10" />
+            <div className="w-3.5 h-3.5 rounded-full bg-[#28c840] border border-black/10" />
           </div>
-
-          {/* Body Content */}
-          <div className="flex-1 p-8 overflow-y-auto text-white custom-scrollbar">
-            {children}
-          </div>
-        </LiquidGlass>
-      </div>
-
-      {/* The Phantom Drag Window (Shows ONLY when dragging) */}
-      {isDragging && (
-        <div className="absolute inset-0 w-[700px] h-[500px] rounded-[40px] border border-white/30 pointer-events-none flex flex-col overflow-hidden">
-          {/* Faked Header for visual continuity */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-[#ff5f57]/50" />
-              <div className="w-3 h-3 rounded-full bg-[#febc2e]/50" />
-              <div className="w-3 h-3 rounded-full bg-[#28c840]/50" />
-            </div>
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/30">
-              {title}
-            </span>
-            <div className="w-10" />
-          </div>
-          <div className="flex-1 p-8 text-white opacity-50">
-             {children}
-          </div>
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/60 drop-shadow-md">
+            {title}
+          </span>
+          <div className="w-10" />
         </div>
-      )}
+
+        {/* Content Container - Slightly darker for text contrast, mimicking your CSS structure */}
+        <div className="flex-1 overflow-hidden relative z-10 bg-black/10">
+          {children}
+        </div>
+      </div>
     </motion.div>
   );
 }
