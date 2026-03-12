@@ -8,7 +8,7 @@ export function WelcomeApp() {
           Frank Mathew Sajan.
         </h1>
         <h2 className="text-[#28c840] font-mono text-sm tracking-[0.15em] uppercase mb-6 drop-shadow-md">
-          Zero-to-One Engineer // Architect // CS Major
+          Zero-to-One Engineer ◦ Architect ◦ CS Major
         </h2>
       </div>
       

@@ -11,19 +11,25 @@ interface CommandRecord {
 export function TerminalApp() {
   const { openApp, refreshUI } = useOSStore();
   const [input, setInput] = useState('');
+  
+  // Display History (The rendered log)
   const [history, setHistory] = useState<CommandRecord[]>([
     {
       command: 'bun run sevilleOS',
       output: (
         <div className="text-[#28c840] mb-2">
-          [System 26 Kernel initialized]<br/>
-          Welcome to Neural Explorer v1.0.0<br/>
+          [kernel initialized]<br/>
+          Welcome to Seville v1.0.0<br/>
           Type 'help' for a list of available commands.
         </div>
       ),
     },
   ]);
   
+  // CLI Navigation History (Arrow Up/Down array)
+  const [cmdHistory, setCmdHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,15 +43,21 @@ export function TerminalApp() {
     const trimmedCmd = cmd.trim().toLowerCase();
     let output: React.ReactNode = '';
 
+    // Log to CLI navigation history if it's not empty
+    if (trimmedCmd !== '') {
+      setCmdHistory((prev) => [...prev, cmd]);
+      setHistoryIndex(-1); // Reset pointer after executing
+    }
+
     switch (trimmedCmd) {
       case 'help':
         output = (
           <div className="text-white/80 space-y-1">
-            <p><span className="text-[#febc2e]">whoami</span>    - Display current user info</p>
-            <p><span className="text-[#febc2e]">ls</span>        - List available directories/apps</p>
+            <p><span className="text-[#febc2e]">whoami</span>     - Display current user info</p>
+            <p><span className="text-[#febc2e]">ls</span>         - List available directories/apps</p>
             <p><span className="text-[#febc2e]">open [app]</span> - Launch an application (e.g., 'open projects')</p>
-            <p><span className="text-[#febc2e]">clear</span>     - Clear terminal history</p>
-            <p><span className="text-[#febc2e]">reboot</span>    - Refresh the OS interface</p>
+            <p><span className="text-[#febc2e]">clear</span>      - Clear terminal history</p>
+            <p><span className="text-[#febc2e]">reboot</span>     - Refresh the OS interface</p>
           </div>
         );
         break;
@@ -60,8 +72,12 @@ export function TerminalApp() {
         );
         break;
       case 'open projects':
-        openApp('projects', 'Archive // Projects');
+        openApp('projects', 'Archive ◦ Projects');
         output = <div className="text-white/50">Opening Projects...</div>;
+        break;
+      case 'open resume':
+        openApp('resume', 'System ◦ Resume Viewer');
+        output = <div className="text-white/50">Opening Resume.pdf...</div>;
         break;
       case 'reboot':
         refreshUI();
@@ -82,12 +98,31 @@ export function TerminalApp() {
     if (e.key === 'Enter') {
       processCommand(input);
       setInput('');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); // Stop cursor from jumping to start
+      if (cmdHistory.length > 0) {
+        const nextIndex = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(nextIndex);
+        setInput(cmdHistory[nextIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const nextIndex = historyIndex + 1;
+        if (nextIndex >= cmdHistory.length) {
+          setHistoryIndex(-1);
+          setInput(''); // Clear input if we drop past the latest command
+        } else {
+          setHistoryIndex(nextIndex);
+          setInput(cmdHistory[nextIndex]);
+        }
+      }
     }
   };
 
   return (
     <div 
-      className="h-full w-full bg-black/20 p-6 font-mono text-sm sm:text-base overflow-y-auto custom-scrollbar"
+      className="h-full w-full bg-black/20 p-6 font-mono text-sm sm:text-base overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       onClick={handleTerminalClick}
     >
       <div className="flex flex-col space-y-4">
