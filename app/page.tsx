@@ -79,7 +79,7 @@ export default function Home() {
 
           {/* THE NEW CONTEXT MENU */}
           {contextMenu.show && (
-            <div style={{ top: contextMenu.y, left: contextMenu.x }} className="absolute z-[9999] w-64 rounded-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.15)] bg-black/60 backdrop-blur-2xl backdrop-saturate-150 flex flex-col p-1.5 overflow-hidden">
+            <div style={{ top: contextMenu.y, left: contextMenu.x }} className="absolute z-9999 w-64 rounded-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.15)] bg-black/60 backdrop-blur-2xl backdrop-saturate-150 flex flex-col p-1.5 overflow-hidden">
               
               <button 
                 onClick={() => { localStorage.clear(); refreshUI(); }} 
@@ -95,7 +95,7 @@ export default function Home() {
                 <Terminal size={16} className="text-white/60" /> Open Terminal
               </button>
 
-              <div className="h-[1px] bg-white/10 my-1.5 mx-2" />
+              <div className="h-px bg-white/10 my-1.5 mx-2" />
 
               {/* Wallpaper Visual Selector */}
               <div className="px-3 py-2">
